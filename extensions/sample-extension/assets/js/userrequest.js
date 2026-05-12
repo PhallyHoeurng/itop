@@ -9,17 +9,21 @@
             const $container =
                 $('[data-attribute-code="access_level_name"]');
             const cache = {};
+            
             function getNameField() {
                 return $('input[name^="attr_access_level_name"]');
             }
+
             function getIdField() {
                 return $('input[name^="attr_access_level_id"]');
             }
+
             function setReadonly() {
                 getNameField()
                     .prop('readonly', true)
                     .css('background-color', '#f9f9f9');
             }
+
             function setFieldValues(name, id) {
                 const $nameField = getNameField();
                 const $idField = getIdField();
@@ -32,10 +36,12 @@
                     .trigger('change')
                     .trigger('input');
             }
+
             function clearValues() {
                 setFieldValues('', '');
                 $('.access-level-wrapper').remove();
             }
+
             function showLoading() {
                 $('.access-level-wrapper').remove();
                 $container.append(`
@@ -173,7 +179,9 @@
                     loadData(subcategoryId);
                 }
             );
+
             setReadonly();
+
             setTimeout(function () {
 
                 const subcategoryId =
