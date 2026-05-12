@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<itop_design xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.6">
+  <classes>
+    <!-- ================================================ -->
+    <!-- NEW: AccessLevel class (the "many" side)         -->
+    <!-- ================================================ -->
+    <class id="AccessLevel" _delta="define">
+      <parent>cmdbAbstractObject</parent>
+      <properties>
+        <comment><![CDATA[/**
+   * Access levels for Service Subcategories
+   */]]></comment>
+        <category>business,searchable</category>
+        <abstract>false</abstract>
+        <key_type>autoincrement</key_type>
+        <db_table>access_level</db_table>
+        <db_key_field>id</db_key_field>
+        <db_final_class_field>finalclass</db_final_class_field>
+        <naming>
+          <attributes>
+            <attribute id="access_name"/>
+          </attributes>
+        </naming>
+        <display_template/>
+        <reconciliation>
+          <attributes>
+            <attribute id="access_name"/>
+            <attribute id="subcategory_id"/>
+          </attributes>
+        </reconciliation>
+      </properties>
+      
+      <fields>
+        <!-- Access Name (required) -->
+        <field id="access_name" xsi:type="AttributeString" _delta="define">
+          <sql>access_name</sql>
+          <default_value/>
+          <is_null_allowed>false</is_null_allowed>
+        </field>
+        
+        <!-- Link back to ServiceSubcategory (ExternalKey) -->
+        <field id="subcategory_id" xsi:type="AttributeExternalKey" _delta="define">
+          <sql>subcategory_id</sql>
+          <target_class>ServiceSubcategory</target_class>
+          <is_null_allowed>false</is_null_allowed>
+          <on_target_delete>DEL_MANUAL</on_target_delete>
+          <allow_target_creation>false</allow_target_creation>
+        </field>
+        
+        <!-- Friendly name for the link (optional but recommended) -->
+        <field id="subcategory_name" xsi:type="AttributeExternalField" _delta="define">
+          <extkey_attcode>subcategory_id</extkey_attcode>
+          <target_attcode>name</target_attcode>
+        </field>
+        
+        <!-- Status field -->
+        <field id="status" xsi:type="AttributeEnum" _delta="define">
+          <sql>status</sql>
+          <default_value>active</default_value>
+          <is_null_allowed>false</is_null_allowed>
+          <values>
+            <value id="active">Active</value>
+            <value id="inactive">Inactive</value>
+          </values>
+        </field>
+      </fields>
+	  <!-- ADD THIS EMPTY METHODS SECTION -->
+	  <methods>
+	  </methods>
+      
+      <presentation>
+        <details>
+          <items>
+            <item id="access_name">
+              <rank>10</rank>
+            </item>
+            <item id="subcategory_id">
+              <rank>20</rank>
+            </item>
+            <item id="status">
+              <rank>30</rank>
+            </item>
+          </items>
+        </details>
+        <search>
+          <items>
+            <item id="access_name"/>
+            <item id="subcategory_id"/>
+            <item id="status"/>
+          </items>
+        </search>
+        <list>
+          <items>
+            <item id="access_name"/>
+            <item id="subcategory_name"/>
+            <item id="status"/>
+          </items>
+        </list>
+      </presentation>
+    </class>
+    
+    <!-- ================================================ -->
+    <!-- MODIFY: ServiceSubcategory (the "one" side)      -->
+    <!-- ================================================ -->
+    <class id="ServiceSubcategory" _delta="if_exists">
+      <fields>
+        <!-- OPTIONAL: Remove the old single field if you had one -->
+        <!-- <field id="access_level" _delta="delete" /> -->
+        
+        <!-- Add LinkedSet to show related AccessLevels -->
+        <field id="access_levels_list" xsi:type="AttributeLinkedSet" _delta="define">
+          <linked_class>AccessLevel</linked_class>
+          <ext_key_to_me>subcategory_id</ext_key_to_me>
+          <edit_mode>add_only</edit_mode>  <!-- Creates new objects only -->
+          <count_min>1</count_min>  <!-- Suggests minimum, but needs PHP enforcement -->
+          <count_max>0</count_max>  <!-- 0 = unlimited -->
+          <with_php_constraint>true</with_php_constraint>  <!-- Enables custom validation [citation:2] -->
+        </field>
+      </fields>
+      
+      <presentation>
+        <details>
+          <items>
+            <!-- Add the linked set to the form (adjust rank as needed) -->
+            <item id="access_levels_list" _delta="define">
+              <rank>70</rank>
+              <tab>0</tab>
+            </item>
+          </items>
+        </details>
+      </presentation>
+      
+      <!-- ================================================ -->
+      <!-- EVENT LISTENER: Enforce "at least one" rule      -->
+      <!-- ================================================ -->
+      <event_listeners>
+        <event_listener id="CheckAtLeastOneAccessLevel" _delta="define">
+          <event>EVENT_DB_CHECK_TO_WRITE</event>  <!-- Triggered before save [citation:2] -->
+          <callback>CheckAtLeastOneAccessLevel</callback>
+          <rank>10</rank>
+        </event_listener>
+      </event_listeners>
+      
+      <!-- ================================================ -->
+      <!-- PHP METHOD: The validation logic                 -->
+      <!-- ================================================ -->
+      <methods>
+        <method id="CheckAtLeastOneAccessLevel" _delta="define">
+          <static>false</static>
+          <access>public</access>
+          <type>Overload-cmdbAbstractObject</type>
+          <code>
+            <![CDATA[
+            /**
+             * Check that at least one Access Level exists when creating a new ServiceSubcategory
+             * This method is called automatically by the EVENT_DB_CHECK_TO_WRITE listener
+             * 
+             * @param \Combodo\iTop\Service\Events\EventData $oEventData Event data containing context [citation:3]
+             */
+            public function CheckAtLeastOneAccessLevel($oEventData)
+            {
+                // Only enforce this rule on object creation (not on updates)
+                // The event data provides context about whether this is a new object [citation:2]
+                if ($oEventData->Get('is_new')) {
+                    
+                    // Get the count of related AccessLevel objects
+                    $iCount = $this->Get('access_levels_list')->Count();
+                    
+                    // If there are zero, prevent the save with an error message
+                    if ($iCount == 0) {
+                        // AddCheckIssue() will block the save and show this message to the user [citation:3]
+                        $this->AddCheckIssue(
+                            Dict::Format('Class:ServiceSubcategory/Error:NoAccessLevel')
+                        );
+                    }
+                }
+            }
+            ]]>
+          </code>
+        </method>
+      </methods>
+    </class>
+  </classes>
+  
+  <!-- ================================================ -->
+  <!-- DICTIONARY ENTRIES (English)                     -->
+  <!-- ================================================ -->
+  <dictionaries>
+    <dictionary id="EN US" _delta="must_exist">
+      <entries>
+        <!-- AccessLevel class labels -->
+        <entry id="Class:AccessLevel" _delta="define">
+          <![CDATA[Access Level]]>
+        </entry>
+        <entry id="Class:AccessLevel/Attribute:access_name" _delta="define">
+          <![CDATA[Access Name]]>
+        </entry>
+        <entry id="Class:AccessLevel/Attribute:subcategory_id" _delta="define">
+          <![CDATA[Service Subcategory]]>
+        </entry>
+        <entry id="Class:AccessLevel/Attribute:status" _delta="define">
+          <![CDATA[Status]]>
+        </entry>
+        <entry id="Class:AccessLevel/Attribute:status/Value:active" _delta="define">
+          <![CDATA[Active]]>
+        </entry>
+        <entry id="Class:AccessLevel/Attribute:status/Value:inactive" _delta="define">
+          <![CDATA[Inactive]]>
+        </entry>
+        
+        <!-- ServiceSubcategory linked set label -->
+        <entry id="Class:ServiceSubcategory/Attribute:access_levels_list" _delta="define">
+          <![CDATA[Access Levels]]>
+        </entry>
+        
+        <!-- Error message for the validation rule -->
+        <entry id="Class:ServiceSubcategory/Error:NoAccessLevel" _delta="define">
+          <![CDATA[You must add at least one Access Level before creating this Service Subcategory.]]>
+        </entry>
+      </entries>
+    </dictionary>
+  </dictionaries>
+  
+  <!-- ================================================ -->
+  <!-- MENUS (Keep your existing menus)                 -->
+  <!-- ================================================ -->
+  <menus>
+    <menu id="ntc-menu-group" xsi:type="MenuGroup" _delta="define">
+      <rank>10</rank>
+    </menu>
+    <menu id="ntc-test-link" xsi:type="WebPageMenuNode" _delta="define">
+      <rank>10</rank>
+      <parent>ntc-menu-group</parent>
+      <url>../../pages/UI.php</url>
+      <title>NTC Extension Works!</title>
+    </menu>
+    
+    <!-- Optional: Add a menu to manage AccessLevels directly -->
+    <menu id="AccessLevelMenu" xsi:type="DashboardMenuNode" _delta="define">
+      <rank>20</rank>
+      <parent>ntc-menu-group</parent>
+      <definition>
+        <dashboard>
+          <cells>
+            <cell>
+              <rank>0</rank>
+              <dashlets>
+                <dashlet id="access-levels-list" xsi:type="DashletObjectList">
+                  <title>All Access Levels</title>
+                  <oql>SELECT AccessLevel</oql>
+                </dashlet>
+              </dashlets>
+            </cell>
+          </cells>
+        </dashboard>
+      </definition>
+    </menu>
+  </menus>
+</itop_design>

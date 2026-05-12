@@ -1,0 +1,16 @@
+{
+  "config": {
+    "classmap-authoritative": true
+  },
+  "autoload": {
+    "psr-4": {
+      "Sample\\iTop\\Extension\\": "src"
+    }
+  },
+  "name": "sample/sample-extension",
+  "type": "itop-extension",
+  "description": "Sample iTop Extension",
+  "require": {
+    "composer-runtime-api": "^2.0"
+  }
+}

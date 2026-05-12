@@ -1,0 +1,8 @@
+*
+!.gitignore
+
+!extensions/
+extensions/*
+
+!extensions/sample-extension/
+!extensions/sample-extension/**
