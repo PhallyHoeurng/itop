@@ -1,55 +1,23 @@
 <?php
-
-$sBaseDir = dirname(__FILE__);
-$sBaseDir = dirname($sBaseDir);
-$sBaseDir = dirname($sBaseDir);
-$sBaseDir = dirname($sBaseDir);
-
-require_once $sBaseDir . '/approot.inc.php';
+require_once dirname(__FILE__) . '/../../../approot.inc.php';
 require_once APPROOT . '/application/startup.inc.php';
 
-ob_clean();
-
-header('Content-Type: application/json; charset=utf-8');
+header('Content-Type: application/json');
 
 try {
-
     $iSubcategoryId = (int) utils::ReadParam('subcategory_id', 0);
+    if ($iSubcategoryId <= 0) throw new Exception('Invalid subcategory');
 
-    if ($iSubcategoryId <= 0) {
-        throw new Exception('Invalid subcategory');
-    }
-
-    $sSQL = "SELECT id, access_name 
-             FROM access_level 
-             WHERE subcategory_id = " . (int)$iSubcategoryId . "
-             AND status = 'active'
-             ORDER BY access_name ASC";
-
+    $sSQL = "SELECT id, access_name FROM access_level WHERE subcategory_id = $iSubcategoryId AND status = 'active'";
     $oResult = CMDBSource::Query($sSQL);
 
-    $aData = array();
-
-    if ($oResult) {
-        while ($aRow = $oResult->fetch_assoc()) {
-            $aData[] = array(
-                'id' => (int)$aRow['id'],
-                'name' => $aRow['access_name']
-            );
-        }
-        $oResult->free();
+    $aData = [];
+    while ($aRow = $oResult->fetch_assoc()) {
+        $aData[] = ['id' => (int)$aRow['id'], 'name' => $aRow['access_name']];
     }
 
-    echo json_encode(array(
-        'success' => true,
-        'data' => $aData
-    ));
+    echo json_encode(['success' => true, 'data' => $aData]);
 } catch (Exception $e) {
-
-    echo json_encode(array(
-        'success' => false,
-        'error' => $e->getMessage()
-    ));
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-
 exit;
