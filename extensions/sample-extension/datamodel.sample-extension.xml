@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <itop_design xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.6">
   <classes>
-    <!-- extend class request -->
+    <!-- extend class request form -->
     <class id="UserRequest" _delta="if_exists">
       <fields>
         <field id="access_level_name" xsi:type="AttributeString" _delta="define">
