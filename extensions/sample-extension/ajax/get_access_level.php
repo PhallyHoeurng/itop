@@ -6,32 +6,25 @@ require_once APPROOT . '/application/startup.inc.php';
 header('Content-Type: application/json; charset=utf-8');
 
 try {
-
-    $iSubcategoryId =
-        (int) utils::ReadParam('subcategory_id', 0);
+    $iSubcategoryId = (int) utils::ReadParam('subcategory_id', 0);
 
     if ($iSubcategoryId <= 0) {
         throw new Exception('Invalid subcategory');
     }
 
     $sSQL = "
-        SELECT
-            id,
-            access_name
-        FROM access_level
-        WHERE subcategory_id = $iSubcategoryId
-        AND status = 'active'
+        SELECT id, access_name 
+        FROM access_level 
+        WHERE subcategory_id = $iSubcategoryId 
+        AND status = 'active' 
         ORDER BY access_name ASC
     ";
 
     $oResult = CMDBSource::Query($sSQL);
-
     $aData = [];
 
     if ($oResult) {
-
         while ($aRow = $oResult->fetch_assoc()) {
-
             $aData[] = [
                 'id'   => (int) $aRow['id'],
                 'name' => $aRow['access_name']
@@ -44,11 +37,9 @@ try {
         'data'    => $aData
     ]);
 } catch (Exception $e) {
-
     echo json_encode([
         'success' => false,
         'error'   => $e->getMessage()
     ]);
 }
-
 exit;

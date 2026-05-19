@@ -22,12 +22,15 @@ Dict::Add('EN US', 'English', 'English', array(
     'Class:AccessLevel/Attribute:status/Value:active' => 'Active',
     'Class:AccessLevel/Attribute:status/Value:inactive' => 'Inactive',
     
-    // ServiceSubcategory linked set
-    'Class:UserRequest/Attribute:access_level_name' => 'Access Level',
-    'Class:ServiceSubcategory/Attribute:access_level_name+' => 'The access levels available for this subcategory',
-    
     // Error message for validation
     'Class:ServiceSubcategory/Error:NoAccessLevel' => 'You must add at least one Access Level before creating this Service Subcategory.',
+
+
+
+    // UserRequest attribute overrides
+    'Class:UserRequest/Attribute:access_level_name' => 'System Role',
+    'Class:UserRequest/Attribute:access_level_name+' => 'Selected system role',
+
 ));
 
 
