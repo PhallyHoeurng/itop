@@ -8,12 +8,12 @@
       <fields>
         <field id="access_level_name" xsi:type="AttributeString" _delta="define">
           <sql>access_level_name</sql>
-          <is_null_allowed>true</is_null_allowed>
+          <is_null_allowed>false</is_null_allowed>
           <max_length>255</max_length>
         </field>
         <field id="access_level_id" xsi:type="AttributeInteger" _delta="define">
           <sql>access_level_id</sql>
-          <is_null_allowed>true</is_null_allowed>
+          <is_null_allowed>false</is_null_allowed>
           <default_value>0</default_value>
         </field>
       </fields>
@@ -22,9 +22,6 @@
           <items>
             <item id="access_level_name">
               <rank>80</rank>
-            </item>
-            <item id="access_level_id">
-              <rank>81</rank>
             </item>
           </items>
         </details>

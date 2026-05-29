@@ -53,5 +53,4 @@ Dict::Add('EN US', 'English', 'English', array(
     'Class:UserRequestAccessLevel/Attribute:accesslevel_id' => 'Access Level ID',
 ));
 
-
 ?>
