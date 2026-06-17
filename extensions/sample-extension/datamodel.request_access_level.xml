@@ -1,35 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <itop_design xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.6">
   <classes>
-    <!-- ===================================================== -->
-    <!-- EXTEND USER REQUEST                                   -->
-    <!-- ===================================================== -->
-    <class id="UserRequest" _delta="if_exists">
-      <fields>
-        <field id="access_level_name" xsi:type="AttributeString" _delta="define">
-          <sql>access_level_name</sql>
-          <is_null_allowed>false</is_null_allowed>
-          <max_length>255</max_length>
-        </field>
-        <field id="access_level_id" xsi:type="AttributeInteger" _delta="define">
-          <sql>access_level_id</sql>
-          <is_null_allowed>false</is_null_allowed>
-          <default_value>0</default_value>
-        </field>
-      </fields>
-      <presentation>
-        <details>
-          <items>
-            <item id="access_level_name">
-              <rank>80</rank>
-            </item>
-          </items>
-        </details>
-      </presentation>
-    </class>
-    <!-- ===================================================== -->
-    <!-- ACCESS LEVEL GROUP                                    -->
-    <!-- ===================================================== -->
     <class id="AccessLevelGroup" _delta="define">
       <parent>cmdbAbstractObject</parent>
       <properties>
@@ -39,11 +10,19 @@
         <db_table>access_level_group</db_table>
         <db_key_field>id</db_key_field>
         <db_final_class_field>finalclass</db_final_class_field>
+        <name_attcode>group_name</name_attcode>
         <naming>
           <attributes>
             <attribute id="group_name"/>
           </attributes>
         </naming>
+        <unique_keys>
+          <key id="unique_group_name">
+            <attributes>
+              <attribute id="group_name"/>
+            </attributes>
+          </key>
+        </unique_keys>
         <reconciliation>
           <attributes>
             <attribute id="group_name"/>
@@ -52,23 +31,23 @@
         </reconciliation>
       </properties>
       <fields>
-        <field id="group_name" xsi:type="AttributeString" _delta="define">
+        <field id="group_name" xsi:type="AttributeString">
           <sql>group_name</sql>
           <is_null_allowed>false</is_null_allowed>
           <max_length>255</max_length>
         </field>
-        <field id="subcategory_id" xsi:type="AttributeExternalKey" _delta="define">
+        <field id="subcategory_id" xsi:type="AttributeExternalKey">
           <sql>subcategory_id</sql>
           <target_class>ServiceSubcategory</target_class>
           <is_null_allowed>false</is_null_allowed>
           <on_target_delete>DEL_MANUAL</on_target_delete>
           <allow_target_creation>false</allow_target_creation>
         </field>
-        <field id="subcategory_name" xsi:type="AttributeExternalField" _delta="define">
+        <field id="subcategory_name" xsi:type="AttributeExternalField">
           <extkey_attcode>subcategory_id</extkey_attcode>
           <target_attcode>name</target_attcode>
         </field>
-        <field id="status" xsi:type="AttributeEnum" _delta="define">
+        <field id="status" xsi:type="AttributeEnum">
           <sql>status</sql>
           <default_value>active</default_value>
           <is_null_allowed>false</is_null_allowed>
@@ -77,48 +56,17 @@
             <value id="inactive">Inactive</value>
           </values>
         </field>
-        <field id="access_levels_list" xsi:type="AttributeLinkedSet" _delta="define">
-          <linked_class>AccessLevel</linked_class>
+        <field id="role_systems_list" xsi:type="AttributeLinkedSet">
+          <linked_class>RoleSystem</linked_class>
           <ext_key_to_me>access_level_group_id</ext_key_to_me>
-          <edit_mode>add_remove</edit_mode>
+          <edit_mode>in_place</edit_mode>
           <deletion_button>true</deletion_button>
-          <count_min>0</count_min>
+          <count_min>1</count_min>
           <count_max>0</count_max>
         </field>
       </fields>
-      <methods>
-        <method id="CheckAtLeastOneAccessLevel" _delta="define">
-          <static>false</static>
-          <access>public</access>
-          <type>Overload-cmdbAbstractObject</type>
-          <code>
-            <![CDATA[
-public function CheckAtLeastOneAccessLevel($oEventData)
-{
-    if ($oEventData->Get('is_new'))
-    {
-        $iCount = $this->Get('access_levels_list')->Count();
-
-        if ($iCount == 0)
-        {
-            $this->AddCheckIssue(
-                Dict::S('Class:AccessLevelGroup/Error:NoAccessLevel')
-            );
-        }
-    }
-}
-]]>
-          </code>
-        </method>
-      </methods>
+      <methods/>
       <relations/>
-      <event_listeners>
-        <event_listener id="CheckAtLeastOneAccessLevel" _delta="define">
-          <event>EVENT_DB_CHECK_TO_WRITE</event>
-          <callback>CheckAtLeastOneAccessLevel</callback>
-          <rank>10</rank>
-        </event_listener>
-      </event_listeners>
       <presentation>
         <details>
           <items>
@@ -131,7 +79,7 @@ public function CheckAtLeastOneAccessLevel($oEventData)
             <item id="status">
               <rank>30</rank>
             </item>
-            <item id="access_levels_list">
+            <item id="role_systems_list">
               <rank>40</rank>
             </item>
           </items>
@@ -152,39 +100,131 @@ public function CheckAtLeastOneAccessLevel($oEventData)
         </list>
       </presentation>
     </class>
-    <!-- ===================================================== -->
-    <!-- MODIFY ACCESS LEVEL                                   -->
-    <!-- ===================================================== -->
-    <class id="AccessLevel" _delta="if_exists">
+    <class id="RoleSystem" _delta="define">
+      <parent>cmdbAbstractObject</parent>
+      <properties>
+        <category>business,searchable</category>
+        <abstract>false</abstract>
+        <key_type>autoincrement</key_type>
+        <db_table>role_system</db_table>
+        <db_key_field>id</db_key_field>
+        <db_final_class_field>finalclass</db_final_class_field>
+        <name_attcode>role_name</name_attcode>
+        <naming>
+          <attributes>
+            <attribute id="role_name"/>
+          </attributes>
+        </naming>
+        <unique_keys>
+          <key id="unique_role_per_group">
+            <attributes>
+              <attribute id="role_name"/>
+              <attribute id="access_level_group_id"/>
+            </attributes>
+          </key>
+        </unique_keys>
+        <reconciliation>
+          <attributes>
+            <attribute id="role_name"/>
+            <attribute id="access_level_group_id"/>
+          </attributes>
+        </reconciliation>
+      </properties>
       <fields>
-        <field id="access_level_group_id" xsi:type="AttributeExternalKey" _delta="define">
+        <field id="role_name" xsi:type="AttributeString">
+          <sql>role_name</sql>
+          <is_null_allowed>false</is_null_allowed>
+          <max_length>255</max_length>
+        </field>
+        <field id="access_level_group_id" xsi:type="AttributeExternalKey">
           <sql>access_level_group_id</sql>
           <target_class>AccessLevelGroup</target_class>
           <is_null_allowed>false</is_null_allowed>
-          <on_target_delete>DEL_MANUAL</on_target_delete>
+          <on_target_delete>DEL_AUTO</on_target_delete>
           <allow_target_creation>false</allow_target_creation>
         </field>
-        <field id="access_level_group_name" xsi:type="AttributeExternalField" _delta="define">
+        <field id="access_level_group_name" xsi:type="AttributeExternalField">
           <extkey_attcode>access_level_group_id</extkey_attcode>
           <target_attcode>group_name</target_attcode>
         </field>
+        <field id="status" xsi:type="AttributeEnum">
+          <sql>status</sql>
+          <default_value>active</default_value>
+          <is_null_allowed>false</is_null_allowed>
+          <values>
+            <value id="active">Active</value>
+            <value id="inactive">Inactive</value>
+          </values>
+        </field>
       </fields>
+      <methods/>
+      <relations/>
       <presentation>
         <details>
           <items>
+            <item id="role_name">
+              <rank>10</rank>
+            </item>
             <item id="access_level_group_id">
-              <rank>50</rank>
+              <rank>20</rank>
+            </item>
+            <item id="status">
+              <rank>30</rank>
+            </item>
+          </items>
+        </details>
+        <search>
+          <items>
+            <item id="role_name"/>
+            <item id="access_level_group_id"/>
+          </items>
+        </search>
+        <list>
+          <items>
+            <item id="role_name"/>
+            <item id="access_level_group_name"/>
+          </items>
+        </list>
+      </presentation>
+    </class>
+    <class id="UserRequest" _delta="if_exists">
+      <fields>
+        <field id="access_level_id" xsi:type="AttributeExternalKey" _delta="force">
+          <sql>access_level_id</sql>
+          <target_class>AccessLevelGroup</target_class>
+          <is_null_allowed>true</is_null_allowed>
+          <on_target_delete>DEL_MANUAL</on_target_delete>
+          <allow_target_creation>false</allow_target_creation>
+        </field>
+        <field id="access_level_name" xsi:type="AttributeExternalField" _delta="force">
+          <extkey_attcode>access_level_id</extkey_attcode>
+          <target_attcode>group_name</target_attcode>
+        </field>
+        <field id="access_levels_list" xsi:type="AttributeLinkedSet" _delta="force">
+          <linked_class>UserRequestAccessLevel</linked_class>
+          <ext_key_to_me>request_id</ext_key_to_me>
+          <edit_mode>add_remove</edit_mode>
+          <deletion_button>true</deletion_button>
+          <count_min>0</count_min>
+          <count_max>0</count_max>
+        </field>
+      </fields>
+      <presentation>
+        <details _delta="must_exist">
+          <items>
+            <item id="access_level_id" _delta="force">
+              <rank>80</rank>
+            </item>
+            <item id="access_levels_list" _delta="force">
+              <rank>81</rank>
             </item>
           </items>
         </details>
       </presentation>
     </class>
-    <!-- ===================================================== -->
-    <!-- MODIFY SERVICE SUBCATEGORY                            -->
-    <!-- ===================================================== -->
     <class id="ServiceSubcategory" _delta="if_exists">
       <fields>
-        <field id="access_level_groups_list" xsi:type="AttributeLinkedSet" _delta="define">
+        <field id="access_level_groups_list" xsi:type="AttributeLinkedSet" _delta="force">
           <linked_class>AccessLevelGroup</linked_class>
           <ext_key_to_me>subcategory_id</ext_key_to_me>
           <edit_mode>add_remove</edit_mode>
@@ -194,18 +234,15 @@ public function CheckAtLeastOneAccessLevel($oEventData)
         </field>
       </fields>
       <presentation>
-        <details>
+        <details _delta="must_exist">
           <items>
-            <item id="access_level_groups_list">
+            <item id="access_level_groups_list" _delta="force">
               <rank>75</rank>
             </item>
           </items>
         </details>
       </presentation>
     </class>
-    <!-- ===================================================== -->
-    <!-- USER REQUEST ACCESS LEVEL                             -->
-    <!-- ===================================================== -->
     <class id="UserRequestAccessLevel" _delta="define">
       <parent>cmdbAbstractObject</parent>
       <properties>
@@ -228,22 +265,28 @@ public function CheckAtLeastOneAccessLevel($oEventData)
         </reconciliation>
       </properties>
       <fields>
-        <field id="name" xsi:type="AttributeString" _delta="define">
+        <field id="name" xsi:type="AttributeString">
           <sql>name</sql>
           <is_null_allowed>false</is_null_allowed>
           <max_length>255</max_length>
         </field>
-        <field id="request_id" xsi:type="AttributeExternalKey" _delta="define">
+        <field id="request_id" xsi:type="AttributeExternalKey">
           <sql>request_id</sql>
           <target_class>UserRequest</target_class>
           <is_null_allowed>false</is_null_allowed>
           <on_target_delete>DEL_MANUAL</on_target_delete>
           <allow_target_creation>false</allow_target_creation>
         </field>
-        <field id="accesslevel_id" xsi:type="AttributeInteger" _delta="define">
+        <field id="accesslevel_id" xsi:type="AttributeExternalKey">
           <sql>accesslevel_id</sql>
+          <target_class>AccessLevelGroup</target_class>
           <is_null_allowed>false</is_null_allowed>
-          <default_value>0</default_value>
+          <on_target_delete>DEL_MANUAL</on_target_delete>
+          <allow_target_creation>false</allow_target_creation>
+        </field>
+        <field id="accesslevel_name" xsi:type="AttributeExternalField">
+          <extkey_attcode>accesslevel_id</extkey_attcode>
+          <target_attcode>group_name</target_attcode>
         </field>
       </fields>
       <methods/>
@@ -273,7 +316,7 @@ public function CheckAtLeastOneAccessLevel($oEventData)
           <items>
             <item id="name"/>
             <item id="request_id"/>
-            <item id="accesslevel_id"/>
+            <item id="accesslevel_name"/>
           </items>
         </list>
       </presentation>
