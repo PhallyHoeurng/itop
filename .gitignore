@@ -6,3 +6,5 @@ extensions/*
 
 !extensions/sample-extension/
 !extensions/sample-extension/**
+!extensions/custom-change-demo/
+!extensions/custom-change-demo/**

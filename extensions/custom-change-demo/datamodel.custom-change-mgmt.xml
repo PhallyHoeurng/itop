@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<itop_design xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="3.0">
+  <classes>
+    <class id="Change" _delta="if_exists">
+      <fields>
+        <field id="top_manager_id" xsi:type="AttributeExternalKey" _delta="define">
+          <sql>top_manager_id</sql>
+          <target_class>Person</target_class>
+          <is_null_allowed>true</is_null_allowed>
+          <on_target_delete>DEL_AUTO</on_target_delete>
+        </field>
+      </fields>
+      <lifecycle>
+        <states>
+          <state id="new" _delta="must_exist">
+            <flags>
+              <attribute id="top_manager_id" status="mandatory" _delta="define"/>
+            </flags>
+            <transitions>
+              <transition id="ev_assign" _delta="must_exist">
+                <flags>
+                  <attribute id="top_manager_id" _delta="define">
+                    <must_prompt/>
+                  </attribute>
+                </flags>
+              </transition>
+            </transitions>
+          </state>
+        </states>
+      </lifecycle>
+      <presentation>
+        <details _delta="must_exist">
+          <items>
+            <item id="col:col1" _delta="must_exist">
+              <items>
+                <item id="fieldset:Ticket:baseinfo" _delta="must_exist">
+                  <items>
+                    <item id="top_manager_id" _delta="define">
+                      <rank>22</rank>
+                    </item>
+                  </items>
+                </item>
+              </items>
+            </item>
+          </items>
+        </details>
+        <search _delta="must_exist">
+          <items>
+            <item id="top_manager_id" _delta="define">
+              <rank>250</rank>
+            </item>
+          </items>
+        </search>
+        <list _delta="must_exist">
+          <items>
+            <item id="top_manager_id" _delta="define">
+              <rank>22</rank>
+            </item>
+          </items>
+        </list>
+      </presentation>
+    </class>
+  </classes>
+  <menus>
+    <menu id="ChangesAwaitingConfirmation" xsi:type="OQLMenuNode" _delta="define">
+      <rank>45</rank>
+      <parent>ChangeManagement</parent>
+      <oql>
+        <![CDATA[SELECT Change WHERE status = 'approved' AND top_manager_id = :current_contact_id]]>
+      </oql>
+      <do_search>1</do_search>
+    </menu>
+  </menus>
+</itop_design>
