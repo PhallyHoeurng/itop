@@ -6,11 +6,11 @@
     <![CDATA[Custom Change Management]]>
   </label>
   <description>
-    <![CDATA[Implements modifications to the Change Management lifecycle and properties.]]>
+    <![CDATA[Implements modifications to the simple Change Management lifecycle and properties.]]>
   </description>
-  <mandatory>false</mandatory>
+  <mandatory>true</mandatory>
   <more_info_url></more_info_url>
   <dependencies>
-    <dependency>itop-change-mgmt-itil/3.0.0</dependency>
+    <dependency>itop-change-mgmt/3.0.0</dependency>
   </dependencies>
 </extension>
