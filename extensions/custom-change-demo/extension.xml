@@ -8,7 +8,7 @@
   <description>
     <![CDATA[Implements modifications to the simple Change Management lifecycle and properties.]]>
   </description>
-  <mandatory>true</mandatory>
+  <mandatory>false</mandatory>
   <more_info_url></more_info_url>
   <dependencies>
     <dependency>itop-change-mgmt/3.0.0</dependency>

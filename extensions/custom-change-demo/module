@@ -15,22 +15,30 @@ SetupWebPage::AddModule(
         'visible' => true,
 
         'datamodel' => array(
-            'datamodel.custom-change-mgmt.xml',
-            'model.custom-change-management.php',
+            'datamodel.custom-change-mgmt.xml', // Fixed missing 'm'
         ),
 
         'webservice' => array(),
 
         'dictionary' => array(
-            'en.dict.custom-change-mgmt.php',
+            'en.dict.custom-change-mgmt.php', // Fixed missing 'm'
         ),
 
-        'data.struct' => array(),
-        'data.sample' => array(),
+        'data.struct' => array(
+            // add your 'structure' definition XML files here,
+        ),
 
+        'data.sample' => array(
+            // add your sample data XML files here,
+        ),
+
+        // Documentation
         'doc.manual_setup' => '',
         'doc.more_information' => '',
 
-        'settings' => array(),
+        // Default settings
+        'settings' => array(
+            // Module specific settings go here, if any
+        ),
     )
 );

@@ -10,11 +10,14 @@
           <is_null_allowed>true</is_null_allowed>
           <on_target_delete>DEL_AUTO</on_target_delete>
         </field>
-        <!-- Injecting 'confirmed' into the change status list -->
+        <!-- Injecting custom statuses into the change status list -->
         <field id="status" _delta="must_exist">
           <values>
-            <value id="confirmed" _delta="define">
-              <code>confirmed</code>
+            <value id="top_mgt_approve" _delta="define">
+              <code>top_mgt_approve</code>
+            </value>
+            <value id="verified" _delta="define">
+              <code>verified</code>
             </value>
           </values>
         </field>
@@ -22,40 +25,75 @@
       <lifecycle>
         <!-- Declaring custom user stimuli so buttons render correctly -->
         <stimuli>
-          <stimulus id="ev_confirm" xsi:type="StimulusUserAction" _delta="define"/>
+          <stimulus id="ev_top_mgt_approve" xsi:type="StimulusUserAction" _delta="define"/>
+          <stimulus id="ev_verify" xsi:type="StimulusUserAction" _delta="define"/>
+          <stimulus id="ev_reject" xsi:type="StimulusUserAction" _delta="define_if_not_exists"/>
           <stimulus id="ev_close" xsi:type="StimulusUserAction" _delta="define"/>
         </stimuli>
         <states>
-          <!-- Requiring Top Manager id during the 'new' state and prompting on assignment -->
+          <!-- State: new (Hidden only during 'new') -->
           <state id="new" _delta="must_exist">
             <flags>
-              <attribute id="top_manager_id" status="mandatory" _delta="define"/>
+              <attribute id="top_manager_id" _delta="define_if_not_exists">
+                <hidden/>
+              </attribute>
             </flags>
             <transitions>
               <transition id="ev_assign" _delta="must_exist">
+                <!-- EXPLICIT TARGET PREVENTS 'Invalid state ""' ERROR -->
+                <target>assigned</target>
                 <flags>
-                  <attribute id="top_manager_id" _delta="define">
+                  <attribute id="top_manager_id" _delta="define_if_not_exists">
+                    <visible/>
                     <must_prompt/>
+                    <mandatory/>
                   </attribute>
                 </flags>
               </transition>
             </transitions>
           </state>
-          <!-- Intercepting standard flow here: Removing 'ev_finish' (Close) and putting 'ev_confirm' -->
+          <!-- State: assigned (Visible & Editable) -->
+          <state id="assigned" _delta="must_exist">
+            <flags>
+              <attribute id="top_manager_id" _delta="define_if_not_exists"/>
+            </flags>
+          </state>
+          <!-- State: approved (Approved By L1) -->
           <state id="approved" _delta="must_exist">
+            <flags>
+              <attribute id="top_manager_id" _delta="define_if_not_exists"/>
+            </flags>
             <transitions>
               <transition id="ev_finish" _delta="delete"/>
-              <transition id="ev_confirm" _delta="define">
-                <target>confirmed</target>
+              <transition id="ev_top_mgt_approve" _delta="define">
+                <target>top_mgt_approve</target>
+                <actions/>
+              </transition>
+              <transition id="ev_reject" _delta="define">
+                <target>rejected</target>
                 <actions/>
               </transition>
             </transitions>
           </state>
-          <!-- Defining your custom confirmation state configuration -->
-          <state id="confirmed" _delta="define">
-            <flags/>
+          <!-- State: top_mgt_approve (Approved By L2) -->
+          <state id="top_mgt_approve" _delta="define">
+            <flags>
+              <attribute id="top_manager_id" _delta="define_if_not_exists"/>
+            </flags>
             <transitions>
-              <transition id="ev_close">
+              <transition id="ev_verify" _delta="define">
+                <target>verified</target>
+                <actions/>
+              </transition>
+            </transitions>
+          </state>
+          <!-- State: verified (Verified By L1) -->
+          <state id="verified" _delta="define">
+            <flags>
+              <attribute id="top_manager_id" _delta="define_if_not_exists"/>
+            </flags>
+            <transitions>
+              <transition id="ev_close" _delta="define">
                 <target>closed</target>
                 <actions/>
               </transition>
@@ -64,21 +102,21 @@
         </states>
       </lifecycle>
       <presentation>
-        <!-- <details _delta="must_exist">
+        <details _delta="must_exist">
           <items>
             <item id="col:col1" _delta="must_exist">
               <items>
-                <item id="fieldset:Ticket:contact" _delta="must_exist">
+                <item id="fieldset:Ticket:contact" _delta="define_if_not_exists">
                   <items>
                     <item id="top_manager_id" _delta="define">
-                      <rank>40</rank>
+                      <rank>50</rank>
                     </item>
                   </items>
                 </item>
               </items>
             </item>
           </items>
-        </details> -->
+        </details>
         <search _delta="must_exist">
           <items>
             <item id="top_manager_id" _delta="define">
@@ -101,7 +139,7 @@
       <rank>45</rank>
       <parent>ChangeManagement</parent>
       <oql>
-        <![CDATA[SELECT Change WHERE status = 'confirmed' AND top_manager_id = :current_contact_id]]>
+        <![CDATA[SELECT Change WHERE status = 'top_mgt_approve' AND top_manager_id = :current_contact_id]]>
       </oql>
       <do_search>1</do_search>
     </menu>

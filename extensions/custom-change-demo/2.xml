@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<itop_design xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="3.0">
+  <classes>
+    <class id="Change" _delta="must_exist">
+      <fields>
+        <!-- Top Manager External Key -->
+        <field id="top_manager_id" xsi:type="AttributeExternalKey" _delta="define_if_not_exists">
+          <sql>top_manager_id</sql>
+          <target_class>Person</target_class>
+          <is_null_allowed>true</is_null_allowed>
+          <on_target_delete>DEL_AUTO</on_target_delete>
+        </field>
+        <!-- Line Manager Reject Reason -->
+        <field id="reject_reason" xsi:type="AttributeText" _delta="define_if_not_exists">
+          <sql>reject_reason</sql>
+          <is_null_allowed>true</is_null_allowed>
+        </field>
+        <!-- Top Manager Reject Reason -->
+        <field id="top_mgt_reject_reason" xsi:type="AttributeText" _delta="define_if_not_exists">
+          <sql>top_mgt_reject_reason</sql>
+          <is_null_allowed>true</is_null_allowed>
+        </field>
+        <!-- Custom Status Values -->
+        <field id="status" _delta="must_exist">
+          <values>
+            <value id="confirmed" _delta="define_if_not_exists">
+              <code>confirmed</code>
+            </value>
+            <value id="top_mgt_rejected" _delta="define_if_not_exists">
+              <code>top_mgt_rejected</code>
+            </value>
+            <value id="rejected" _delta="define_if_not_exists">
+              <code>rejected</code>
+            </value>
+          </values>
+        </field>
+      </fields>
+      <lifecycle>
+        <stimuli>
+          <stimulus id="ev_plan" xsi:type="StimulusUserAction" _delta="define_if_not_exists"/>
+          <stimulus id="ev_approve" xsi:type="StimulusUserAction" _delta="define_if_not_exists"/>
+          <stimulus id="ev_reject" xsi:type="StimulusUserAction" _delta="define_if_not_exists"/>
+          <stimulus id="ev_top_mgt_reject" xsi:type="StimulusUserAction" _delta="define_if_not_exists"/>
+          <stimulus id="ev_confirm" xsi:type="StimulusUserAction" _delta="define_if_not_exists"/>
+          <stimulus id="ev_close" xsi:type="StimulusUserAction" _delta="define_if_not_exists"/>
+          <stimulus id="ev_reopen" xsi:type="StimulusUserAction" _delta="define_if_not_exists"/>
+        </stimuli>
+        <states>
+          <!-- NEW: top_manager_id is strictly HIDDEN here -->
+          <state id="new" _delta="must_exist">
+            <flags>
+              <attribute id="top_manager_id" _delta="define_if_not_exists">
+                <hidden/>
+              </attribute>
+              <attribute id="reject_reason" _delta="define_if_not_exists">
+                <hidden/>
+              </attribute>
+              <attribute id="top_mgt_reject_reason" _delta="define_if_not_exists">
+                <hidden/>
+              </attribute>
+            </flags>
+            <transitions>
+              <transition id="ev_assign" _delta="must_exist">
+                <flags>
+                  <attribute id="top_manager_id" _delta="define_if_not_exists">
+                    <must_prompt/>
+                    <mandatory/>
+                  </attribute>
+                </flags>
+              </transition>
+            </transitions>
+          </state>
+          <!-- ASSIGNED -->
+          <state id="assigned" _delta="must_exist">
+            <flags>
+              <attribute id="reject_reason" _delta="define_if_not_exists">
+                <hidden/>
+              </attribute>
+              <attribute id="top_mgt_reject_reason" _delta="define_if_not_exists">
+                <hidden/>
+              </attribute>
+            </flags>
+            <transitions>
+              <transition id="ev_plan" _delta="define_if_not_exists">
+                <target>planned</target>
+                <actions/>
+              </transition>
+            </transitions>
+          </state>
+          <!-- PLANNED -->
+          <state id="planned" _delta="must_exist">
+            <flags>
+              <attribute id="reject_reason" _delta="define_if_not_exists">
+                <hidden/>
+              </attribute>
+              <attribute id="top_mgt_reject_reason" _delta="define_if_not_exists">
+                <hidden/>
+              </attribute>
+            </flags>
+            <transitions>
+              <transition id="ev_approve" _delta="define_if_not_exists">
+                <target>approved</target>
+                <actions/>
+              </transition>
+              <transition id="ev_reject" _delta="define_if_not_exists">
+                <target>rejected</target>
+                <flags>
+                  <attribute id="reject_reason" _delta="define_if_not_exists">
+                    <must_prompt/>
+                    <mandatory/>
+                  </attribute>
+                </flags>
+                <actions/>
+              </transition>
+            </transitions>
+          </state>
+          <!-- APPROVED -->
+          <state id="approved" _delta="must_exist">
+            <flags>
+              <attribute id="reject_reason" _delta="define_if_not_exists">
+                <hidden/>
+              </attribute>
+              <attribute id="top_mgt_reject_reason" _delta="define_if_not_exists">
+                <hidden/>
+              </attribute>
+            </flags>
+            <transitions>
+              <transition id="ev_finish" _delta="delete"/>
+              <transition id="ev_confirm" _delta="define_if_not_exists">
+                <target>confirmed</target>
+                <actions/>
+              </transition>
+              <transition id="ev_top_mgt_reject" _delta="define_if_not_exists">
+                <target>top_mgt_rejected</target>
+                <flags>
+                  <attribute id="top_mgt_reject_reason" _delta="define_if_not_exists">
+                    <must_prompt/>
+                    <mandatory/>
+                  </attribute>
+                </flags>
+                <actions/>
+              </transition>
+            </transitions>
+          </state>
+          <!-- CONFIRMED -->
+          <state id="confirmed" _delta="define_if_not_exists">
+            <flags>
+              <attribute id="reject_reason" _delta="define_if_not_exists">
+                <hidden/>
+              </attribute>
+              <attribute id="top_mgt_reject_reason" _delta="define_if_not_exists">
+                <hidden/>
+              </attribute>
+            </flags>
+            <transitions>
+              <transition id="ev_close" _delta="define_if_not_exists">
+                <target>closed</target>
+                <actions/>
+              </transition>
+              <transition id="ev_top_mgt_reject" _delta="define_if_not_exists">
+                <target>top_mgt_rejected</target>
+                <flags>
+                  <attribute id="top_mgt_reject_reason" _delta="define_if_not_exists">
+                    <must_prompt/>
+                    <mandatory/>
+                  </attribute>
+                </flags>
+                <actions/>
+              </transition>
+            </transitions>
+          </state>
+          <!-- CLOSED -->
+          <state id="closed" _delta="must_exist">
+            <flags>
+              <attribute id="reject_reason" _delta="define_if_not_exists">
+                <hidden/>
+              </attribute>
+              <attribute id="top_mgt_reject_reason" _delta="define_if_not_exists">
+                <hidden/>
+              </attribute>
+            </flags>
+          </state>
+          <!-- LINE MANAGER REJECTED STATE -->
+          <state id="rejected" _delta="define_if_not_exists">
+            <flags>
+              <attribute id="reject_reason" status="read_only" _delta="define_if_not_exists"/>
+              <attribute id="top_mgt_reject_reason" _delta="define_if_not_exists">
+                <hidden/>
+              </attribute>
+            </flags>
+            <transitions>
+              <transition id="ev_reopen" _delta="define_if_not_exists">
+                <target>assigned</target>
+                <actions/>
+              </transition>
+            </transitions>
+          </state>
+          <!-- TOP MANAGER REJECTED STATE -->
+          <state id="top_mgt_rejected" _delta="define_if_not_exists">
+            <flags>
+              <attribute id="reject_reason" _delta="define_if_not_exists">
+                <hidden/>
+              </attribute>
+              <attribute id="top_mgt_reject_reason" status="read_only" _delta="define_if_not_exists"/>
+            </flags>
+            <transitions>
+              <transition id="ev_reopen" _delta="define_if_not_exists">
+                <target>assigned</target>
+                <actions/>
+              </transition>
+            </transitions>
+          </state>
+        </states>
+      </lifecycle>
+      <!-- PRESENTATION -->
+      <presentation>
+        <details _delta="must_exist">
+          <items>
+            <!-- Column 1: Contacts Section -->
+            <item id="col:col1" _delta="must_exist">
+              <items>
+                <item id="fieldset:Ticket:contact" _delta="must_exist">
+                  <items>
+                    <item id="top_manager_id" _delta="define_if_not_exists">
+                      <rank>50</rank>
+                    </item>
+                  </items>
+                </item>
+              </items>
+            </item>
+            <!-- Column 2: Resolution Section -->
+            <item id="col:col2" _delta="must_exist">
+              <items>
+                <item id="fieldset:Change:resolution" _delta="define_if_not_exists">
+                  <rank>10</rank>
+                  <items>
+                    <item id="reject_reason" _delta="define_if_not_exists">
+                      <rank>40</rank>
+                    </item>
+                    <item id="top_mgt_reject_reason" _delta="define_if_not_exists">
+                      <rank>50</rank>
+                    </item>
+                  </items>
+                </item>
+              </items>
+            </item>
+          </items>
+        </details>
+        <search _delta="must_exist">
+          <items>
+            <item id="top_manager_id" _delta="define_if_not_exists">
+              <rank>250</rank>
+            </item>
+          </items>
+        </search>
+        <list _delta="must_exist">
+          <items>
+            <item id="top_manager_id" _delta="define_if_not_exists">
+              <rank>22</rank>
+            </item>
+          </items>
+        </list>
+      </presentation>
+    </class>
+  </classes>
+  <menus>
+    <menu id="ChangesAwaitingConfirmation" xsi:type="OQLMenuNode" _delta="define_if_not_exists">
+      <rank>45</rank>
+      <parent>ChangeManagement</parent>
+      <oql>
+        <![CDATA[SELECT Change WHERE status = "approved" AND top_manager_id = :current_user->contactid]]>
+      </oql>
+      <do_search>1</do_search>
+    </menu>
+  </menus>
+</itop_design>
