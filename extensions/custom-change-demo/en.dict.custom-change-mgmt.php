@@ -12,7 +12,7 @@ Dict::Add('EN US', 'English', 'English', array(
     'Class:Change/Attribute:top_manager_id+' => 'The top manager responsible for approving this change.',
 
     /* Status Labels */
-    'Class:Change/Attribute:status/Value:approved' => 'Approved By L1',
+    'Class:Change/Attribute:status/Value:approved' => 'Approved by L1',
     'Class:Change/Attribute:status/Value:approved+' => 'Change implementation has been completed and is awaiting top manager approval.',
 
     'Class:Change/Attribute:status/Value:verified' => 'Verified',
@@ -22,7 +22,7 @@ Dict::Add('EN US', 'English', 'English', array(
     'Class:Change/Stimulus:ev_top_mgt_approve' => 'Approve',
     'Class:Change/Stimulus:ev_top_mgt_approve+' => 'Click to approve this change request as Top Manager.',
 
-    'Class:Change/Attribute:status/Value:top_mgt_approve' => 'Approved By L2',
+    'Class:Change/Attribute:status/Value:top_mgt_approve' => 'Approved by L2',
     'Class:Change/Attribute:status/Value:top_mgt_approve+' => 'Change approved by top management and is awaiting verification.',
 
     'Class:Change/Stimulus:ev_verify' => 'Verify',

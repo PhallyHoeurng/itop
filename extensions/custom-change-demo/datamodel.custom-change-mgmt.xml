@@ -3,35 +3,42 @@
   <classes>
     <class id="Change" _delta="if_exists">
       <fields>
-        <!-- Custom external key field for Top Manager -->
         <field id="top_manager_id" xsi:type="AttributeExternalKey" _delta="define">
           <sql>top_manager_id</sql>
           <target_class>Person</target_class>
           <is_null_allowed>true</is_null_allowed>
           <on_target_delete>DEL_AUTO</on_target_delete>
         </field>
-        <!-- Injecting custom statuses into the change status list -->
         <field id="status" _delta="must_exist">
           <values>
             <value id="top_mgt_approve" _delta="define">
               <code>top_mgt_approve</code>
+              <style>
+                <main_color>$ibo-lifecycle-new-state-primary-color</main_color>
+                <complementary_color>$ibo-lifecycle-new-state-secondary-color</complementary_color>
+                <decoration_classes/>
+              </style>
             </value>
             <value id="verified" _delta="define">
               <code>verified</code>
+              <style>
+                <main_color>$ibo-lifecycle-new-state-primary-color</main_color>
+                <complementary_color>$ibo-lifecycle-new-state-secondary-color</complementary_color>
+                <decoration_classes/>
+              </style>
             </value>
           </values>
         </field>
       </fields>
       <lifecycle>
-        <!-- Declaring custom user stimuli so buttons render correctly -->
         <stimuli>
-          <stimulus id="ev_top_mgt_approve" xsi:type="StimulusUserAction" _delta="define"/>
-          <stimulus id="ev_verify" xsi:type="StimulusUserAction" _delta="define"/>
+          <stimulus id="ev_top_mgt_approve" xsi:type="StimulusUserAction" _delta="define_if_not_exists"/>
+          <stimulus id="ev_verify" xsi:type="StimulusUserAction" _delta="define_if_not_exists"/>
           <stimulus id="ev_reject" xsi:type="StimulusUserAction" _delta="define_if_not_exists"/>
-          <stimulus id="ev_close" xsi:type="StimulusUserAction" _delta="define"/>
+          <stimulus id="ev_reopen" xsi:type="StimulusUserAction" _delta="define_if_not_exists"/>
+          <stimulus id="ev_close" xsi:type="StimulusUserAction" _delta="define_if_not_exists"/>
         </stimuli>
         <states>
-          <!-- State: new (Hidden only during 'new') -->
           <state id="new" _delta="must_exist">
             <flags>
               <attribute id="top_manager_id" _delta="define_if_not_exists">
@@ -40,11 +47,9 @@
             </flags>
             <transitions>
               <transition id="ev_assign" _delta="must_exist">
-                <!-- EXPLICIT TARGET PREVENTS 'Invalid state ""' ERROR -->
                 <target>assigned</target>
                 <flags>
                   <attribute id="top_manager_id" _delta="define_if_not_exists">
-                    <visible/>
                     <must_prompt/>
                     <mandatory/>
                   </attribute>
@@ -52,17 +57,14 @@
               </transition>
             </transitions>
           </state>
-          <!-- State: assigned (Visible & Editable) -->
           <state id="assigned" _delta="must_exist">
             <flags>
-              <attribute id="top_manager_id" _delta="define_if_not_exists"/>
+              <attribute id="top_manager_id" _delta="define_if_not_exists">
+                <mandatory/>
+              </attribute>
             </flags>
           </state>
-          <!-- State: approved (Approved By L1) -->
           <state id="approved" _delta="must_exist">
-            <flags>
-              <attribute id="top_manager_id" _delta="define_if_not_exists"/>
-            </flags>
             <transitions>
               <transition id="ev_finish" _delta="delete"/>
               <transition id="ev_top_mgt_approve" _delta="define">
@@ -75,10 +77,22 @@
               </transition>
             </transitions>
           </state>
-          <!-- State: top_mgt_approve (Approved By L2) -->
-          <state id="top_mgt_approve" _delta="define">
+          <transition id="ev_reopen" _delta="define">
+            <target>assigned</target>
             <flags>
-              <attribute id="top_manager_id" _delta="define_if_not_exists"/>
+              <attribute id="top_manager_id" _delta="define_if_not_exists">
+                <must_prompt/>
+                <mandatory/>
+              </attribute>
+            </flags>
+            <actions/>
+          </transition>
+          <state id="top_mgt_approve" _delta="define">
+            <inherit_flags_from>approved</inherit_flags_from>
+            <flags>
+              <attribute id="top_manager_id">
+                <mandatory/>
+              </attribute>
             </flags>
             <transitions>
               <transition id="ev_verify" _delta="define">
@@ -87,11 +101,9 @@
               </transition>
             </transitions>
           </state>
-          <!-- State: verified (Verified By L1) -->
           <state id="verified" _delta="define">
-            <flags>
-              <attribute id="top_manager_id" _delta="define_if_not_exists"/>
-            </flags>
+            <inherit_flags_from>top_mgt_approve</inherit_flags_from>
+            <flags/>
             <transitions>
               <transition id="ev_close" _delta="define">
                 <target>closed</target>
@@ -102,11 +114,11 @@
         </states>
       </lifecycle>
       <presentation>
-        <details _delta="must_exist">
+        <details>
           <items>
             <item id="col:col1" _delta="must_exist">
               <items>
-                <item id="fieldset:Ticket:contact" _delta="define_if_not_exists">
+                <item id="fieldset:Ticket:contact" _delta="must_exist">
                   <items>
                     <item id="top_manager_id" _delta="define">
                       <rank>50</rank>
@@ -139,7 +151,15 @@
       <rank>45</rank>
       <parent>ChangeManagement</parent>
       <oql>
-        <![CDATA[SELECT Change WHERE status = 'top_mgt_approve' AND top_manager_id = :current_contact_id]]>
+        <![CDATA[SELECT Change WHERE status = 'approved' AND top_manager_id = :current_contact_id]]>
+      </oql>
+      <do_search>1</do_search>
+    </menu>
+    <menu id="ChangesAwaitingverify" xsi:type="OQLMenuNode" _delta="define">
+      <rank>46</rank>
+      <parent>ChangeManagement</parent>
+      <oql>
+        <![CDATA[SELECT Change WHERE status = 'top_mgt_approve']]>
       </oql>
       <do_search>1</do_search>
     </menu>
